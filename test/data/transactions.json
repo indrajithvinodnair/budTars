@@ -1,0 +1,42 @@
+[
+  {
+    "amount": 100,
+    "date": "2024-06-01"
+  },
+  {
+    "category": "gym",
+    "amount": 50,
+    "note": "milk",
+    "date": "2025-05-29"
+  },
+  {
+    "category": "entertainment",
+    "amount": 50,
+    "note": "tea and snacks",
+    "date": "2025-05-30"
+  },
+  {
+    "category": "entertainment",
+    "amount": 1000,
+    "note": "movies",
+    "date": "2025-05-30"
+  },
+  {
+    "category": "entertainment",
+    "amount": 1000,
+    "note": "movies",
+    "date": "2025-05-30"
+  },
+  {
+    "category": "entertainment",
+    "amount": 600,
+    "note": "OMR",
+    "date": "2025-05-30"
+  },
+  {
+    "category": "entertainment",
+    "amount": 350,
+    "note": "KFC",
+    "date": "2025-05-30"
+  }
+]

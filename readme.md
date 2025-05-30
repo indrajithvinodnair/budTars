@@ -1,201 +1,165 @@
-# 🧠 TARS: Personal Finance Tracker Telegram Bot
+# 📱 Personal Budget Tracker (Offline PWA)
 
-**TARS** is your always-online personal finance assistant, built as a Telegram bot with Google Sheets as a backend. It helps you log expenses and investments, monitor budget caps, and track monthly contributions — all via simple chat commands.
+A fully offline personal finance tracker designed to run as a **Progressive Web App (PWA)** on your smartphone. Built using **React + Vite + ShadCN UI**, this app uses local JSON-style data (via localStorage or optional File System Access API) to manage budget caps and expenses with a **reverse budgeting** model.
 
----
-
-## 📌 Features
-
-* ✅ Log **expenses** and **investment contributions**
-* ✅ Maintain **category-wise monthly budget caps**
-* ✅ Real-time feedback on remaining budget
-* ✅ Sync data to **Google Sheets**
-* ✅ Monthly **reset + data archive** for clear tracking
-* ✅ Easily deploy on Replit, Render, or locally
+This project is designed to work **entirely on-device**, with no need for cloud hosting or Android Studio.
 
 ---
 
-## 🧱 Core Commands
+## 🚀 Features
 
-### `/spend <category> <amount> <note>`
+* 🧾 **Reverse Budgeting**: Deduct expenses from preset caps
+* 📂 **Offline First**: Uses localStorage or File System API
+* 📱 **Installable PWA**: Works like a native app on Android
+* 🧩 **Customizable**: Change caps, categories, and reset cycles
+* 📝 **Expense Notes**: Attach notes to transactions
+* 📊 **Modern UI**: Built with ShadCN and TailwindCSS
+* 💾 **Manual Export/Import**: Backup or restore JSON data
+* 🔍 **JSON Viewer/Editor**: View and edit raw data in the UI
 
-Log a daily expense.
+---
+
+## 🧱 Tech Stack
+
+| Layer      | Tool                           | Why?                              |
+| ---------- | ------------------------------ | --------------------------------- |
+| Framework  | React + Vite                   | Fast, minimal dev environment     |
+| UI Library | ShadCN UI (Tailwinnpm create vite@latest . --template react-ts --registry "https://registry.npmjs.org/"d)           | Beautiful, clean, mobile-friendly |
+| Storage    | localStorage / File System API | Fully offline, manual backup      |
+| Deploy     | PWA install (no hosting)       | Add to home screen, run offline   |
+
+---
+
+## 🗃️ Folder Structure
+
+```plaintext
+/
+├── public/                # Static assets
+├── src/
+│   ├── components/        # Reusable UI components
+│   ├── data/              # Simulated JSON budgets
+│   ├── hooks/             # useBudget, useStorage etc.
+│   ├── pages/             # Home, Settings, JSON Editor
+│   ├── App.jsx            # Root App component
+│   └── main.jsx           # App entry point
+├── index.html
+└── README.md
+```
+
+---
+
+## 📁 Simulated JSON Files
+
+Internally mimicking `budget_caps.json` and `transactions.json` with `localStorage`, plus optional import/export to real JSON files.
+
+### Example: Budget Caps
+
+```json
+{
+  "gym": 5000,
+  "food": 4000,
+  "entertainment": 3000,
+  "bike": 1000
+}
+```
+
+### Example: Transactions
+
+```json
+[
+  {
+    "category": "gym",
+    "amount": 1000,
+    "note": "PT fee",
+    "date": "2025-05-29"
+  },
+  {
+    "category": "food",
+    "amount": 600,
+    "note": "eggs and milk",
+    "date": "2025-05-28"
+  }
+]
+```
+
+---
+
+## 🛠 Setup Instructions
+
+### 1. Clone the Repo
 
 ```bash
-/spend food 300 lunch & milk
-👉 ✅ Logged ₹300 under Food. ₹3700 left.
+git clone https://github.com/yourname/budget-tracker-pwa.git
+cd budget-tracker-pwa
 ```
 
----
-
-### `/invest <category> <amount> <note>`
-
-Log a monthly investment contribution.
+### 2. Install Dependencies
 
 ```bash
-/invest sip 4000 emergency fund
-👉 ✅ Logged ₹4000 under SIP. ₹3000 left.
+npm install
 ```
 
----
-
-### `/status`
-
-Get your current budget progress:
-
-```
-📊 Budget Status (May 2025)
-
-Expenses:
-- Food: ₹300 / ₹4000 (₹3700 left)
-- Gym: ₹0 / ₹5000
-
-Investments:
-- SIP: ₹4000 / ₹7000 (₹3000 left)
-```
-
----
-
-### `/logs`
-
-See your last 5 transactions:
-
-```
-1. Food - ₹300 - lunch & milk
-2. SIP - ₹4000 - emergency fund
-```
-
----
-
-### `/reset_month`
-
-Manually trigger a **monthly archive**:
-
-* Copies all `transactions` to `logs_YYYY_MM`
-* Resets the `transactions` sheet
-* Resets “Spent” values in `budgets`
-
----
-
-## 📊 Google Sheet Structure
-
-### Sheet 1: `transactions`
-
-| Column   | Description           |
-| -------- | --------------------- |
-| Date     | `YYYY-MM-DD`          |
-| Type     | `Expense` or `Invest` |
-| Category | Budget category name  |
-| Amount   | Transaction amount    |
-| Note     | Optional description  |
-
----
-
-### Sheet 2: `budgets`
-
-| Column    | Description            |
-| --------- | ---------------------- |
-| Category  | Matches log categories |
-| Type      | `Expense` or `Invest`  |
-| Cap       | Monthly budget         |
-| Spent     | Auto-calculated        |
-| Remaining | Cap - Spent            |
-
----
-
-## 🔐 Setup Instructions
-
-### 1. Create Google Sheet
-
-* Name: `TARS Finance Sheet`
-* Tabs:
-
-  * `transactions`
-  * `budgets`
-* Share it with your **Google Service Account**
-
-### 2. Get Google Sheets Credentials
-
-* Create a **Service Account** in Google Cloud
-* Enable `Google Sheets API`
-* Download `credentials.json`
-* Share sheet with the service account email
-
-### 3. Install Dependencies
+### 3. Run the App Locally
 
 ```bash
-pip install -r requirements.txt
+npm run dev
 ```
 
-#### `requirements.txt`
+### 4. Build for Production
 
-```txt
-python-telegram-bot==13.15
-gspread
-oauth2client
-python-dotenv
+```bash
+npm run build
 ```
 
----
+### 5. Install on Android (No Hosting Needed)
 
-### 4. Set Environment Variables
+* Run `npm run dev` and open the app URL on your phone via LAN (e.g., `http://192.168.0.x:5173`)
+* Tap **"Add to Home Screen"** in Chrome
+* The app is now fully offline and behaves like a native app
 
-Create a `.env` file:
-
-```env
-BOT_TOKEN=your_telegram_bot_token
-SHEET_NAME=TARS Finance Sheet
-```
+**Alternative (No LAN):** Copy the `dist/` folder to phone and use a browser like Hermit to open `index.html`
 
 ---
 
-## 📁 Project Structure
+## 🔐 Manual Backup & Restore
 
-```
-/tars-finance-bot
-
-🔍 tars_bot.py           # Main bot logic
-🔍 credentials.json      # Google API credentials
-🔍 .env                  # Tokens and config
-🔍 requirements.txt
-🔍 README.md             # You're here
-🔍 utils/
-    └︎ sheets.py         # Google Sheet functions
-```
+You can manually view, backup, and edit your JSON files:
 
----
+* Use the **JSON Editor Screen** to:
 
-## 🚀 Deploying the Bot
+  * View raw data
+  * Edit caps or transactions
+  * Restore or adjust manually
 
-| Platform   | Notes                                      |
-| ---------- | ------------------------------------------ |
-| **Replit** | Good for always-online bots                |
-| **Local**  | Simple for dev work (`python tars_bot.py`) |
-| **Render** | For production-grade auto-deploy           |
+* Use built-in buttons:
+
+  * 📤 Export data to `.json`
+  * 📥 Import from a saved file
 
 ---
 
-## 🧠 Future Enhancements
+## 🧩 Customization Ideas
 
-* 📟 CSV export
-* 📊 Graph support (spend over time)
-* 🗓 Weekly/daily spend summaries
-* 📊 Net worth projection (optional)
-* 🔄 Scheduled reset via CRON
-
----
-
-## ✅ Build Roadmap
-
-* [x] Budget + Expense Logging
-* [x] Investment Logging
-* [x] Real-time Status Command
-* [x] Monthly Reset and Archive
-* [x] Deployable and Reusable Codebase
+* Monthly resets (automated)
+* Graphs / pie charts for spend distribution
+* Budget alerts when close to limits
+* Export to CSV
+* Dark/light mode toggle
 
 ---
 
-## 🧑‍💻 Author
+## 🤝 Contributing
 
-**Indrajith Vinod Nair** — a proactive 23-year-old making smart money moves, building a tool to stay ahead of lifestyle inflation.
+Fork the repo, suggest features, or open a PR — all contributions welcome!
 
+---
+
+## 📜 License
+
+MIT License
+
+---
+
+## 🧠 Author
+
+TARS (powered by ChatGPT)
