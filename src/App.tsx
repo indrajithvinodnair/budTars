@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import { useBudget } from './hooks/useBudget';
+import { useState, useEffect } from 'react';
 import type { Transaction } from './hooks/useBudget';
+import { useBudget } from './hooks/useBudget';
 import { Link } from 'react-router-dom';
 import './App.css';
 
@@ -10,12 +10,21 @@ export function App() {
     remaining,
     transactions,
     addTransaction,
+    loading,
+    error,
   } = useBudget();
 
   // Form state
-  const [category, setCategory] = useState<string>(Object.keys(caps)[0] || '');
+  const [category, setCategory] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
   const [note, setNote] = useState<string>('');
+
+  // Set default category once caps are loaded
+  useEffect(() => {
+    if (Object.keys(caps).length > 0 && !category) {
+      setCategory(Object.keys(caps)[0]);
+    }
+  }, [caps, category]);
 
   const handleLog = () => {
     if (!category || amount <= 0) return;
@@ -33,14 +42,52 @@ export function App() {
     setNote('');
   };
 
+  if (loading) {
+    return (
+      <div className="p-4 max-w-md mx-auto text-center">
+        <p>Loading budget data...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 max-w-md mx-auto">
+        <div className="p-3 bg-red-100 text-red-700 rounded mb-4">
+          {error}
+        </div>
+        <Link to="/settings" className="block w-full py-3 bg-blue-600 text-white text-center rounded">
+          Go to Settings
+        </Link>
+      </div>
+    );
+  }
+
+  if (Object.keys(caps).length === 0) {
+    return (
+      <div className="p-4 max-w-md mx-auto text-center">
+        <h1 className="text-2xl font-bold mb-4">Budget Tracker</h1>
+        <p className="mb-6">No budget categories set up yet</p>
+        <Link to="/settings" className="py-3 px-6 bg-blue-600 text-white rounded-lg">
+          Set Up Categories
+        </Link>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 max-w-md mx-auto">
-      {/* Header with Settings link */}
-      <header className="flex justify-between items-center mb-4">
+      {/* Header with Raw Data & Settings links */}
+      <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Budget Tracker</h1>
-        <Link to="/settings" className="text-blue-600">
-          ⚙️
-        </Link>
+        <div className="flex gap-4">
+          <Link to="/raw-data" className="text-green-600 hover:text-green-800">
+            📜 Raw JSON
+          </Link>
+          <Link to="/settings" className="text-blue-600 hover:text-blue-800">
+            ⚙️ Settings
+          </Link>
+        </div>
       </header>
 
       {/* Remaining Budgets */}
@@ -61,9 +108,9 @@ export function App() {
         <select
           className="w-full p-2 border rounded"
           value={category}
-          onChange={e => setCategory(e.target.value)}
+          onChange={(e) => setCategory(e.target.value)}
         >
-          {Object.keys(caps).map(cat => (
+          {Object.keys(caps).map((cat) => (
             <option key={cat} value={cat}>
               {cat}
             </option>
@@ -87,7 +134,7 @@ export function App() {
         />
 
         <button
-          className="w-full bg-blue-500 text-white p-2 rounded"
+          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
           onClick={handleLog}
         >
           Log Expense
@@ -105,9 +152,11 @@ export function App() {
               .slice(-5)
               .reverse()
               .map((tx, idx) => (
-                <li key={idx}>
-                  {tx.date} — {tx.category}: ₹{tx.amount}{' '}
-                  {tx.note && <span>({tx.note})</span>}
+                <li key={idx} className="flex justify-between">
+                  <span>
+                    {tx.date} — {tx.category}: ₹{tx.amount}
+                  </span>
+                  {tx.note && <span className="text-gray-500">({tx.note})</span>}
                 </li>
               ))}
           </ul>

@@ -1,8 +1,4 @@
-import { useEffect, useCallback } from 'react';
-import { useStorage } from './useStorage';
-import { useFileHandle } from './useFileHandle';
-import staticCapsJson from '../data/budget.json';
-import staticTxJson from '../data/transactions.json';
+import { useState, useEffect, useCallback } from 'react';
 
 export interface Transaction {
   category: string;
@@ -13,40 +9,145 @@ export interface Transaction {
 
 export type Caps = Record<string, number>;
 
-const staticCaps: Caps = staticCapsJson as Caps;
-const staticTx: Transaction[] = staticTxJson as Transaction[];
+// Simple IndexedDB helper
+const openDB = () => {
+  return new Promise<IDBDatabase>((resolve, reject) => {
+    const request = indexedDB.open('budget-app', 1);
+    
+    request.onupgradeneeded = (event) => {
+      const db = (event.target as IDBOpenDBRequest).result;
+      if (!db.objectStoreNames.contains('caps')) {
+        db.createObjectStore('caps');
+      }
+      if (!db.objectStoreNames.contains('transactions')) {
+        db.createObjectStore('transactions', { keyPath: 'id', autoIncrement: true });
+      }
+    };
+    
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+};
 
 export function useBudget() {
-  const [caps, setCaps] = useStorage<Caps>('budgetCaps', staticCaps);
-  const [transactions, setTransactions] = 
-    useStorage<Transaction[]>('transactions', staticTx);
+  const [caps, setCaps] = useState<Caps>({});
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const capsFile = useFileHandle('capsFileHandle');
-  const txFile = useFileHandle('txFileHandle');
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const db = await openDB();
+      
+      // Load caps
+      const capsTx = db.transaction('caps', 'readonly');
+      const capsStore = capsTx.objectStore('caps');
+      const capsData = await new Promise<Caps>((resolve, reject) => {
+        const request = capsStore.get('caps');
+        request.onsuccess = () => resolve(request.result || {});
+        request.onerror = () => reject(request.error);
+      });
+      
+      // Load transactions
+      const txTx = db.transaction('transactions', 'readonly');
+      const txStore = txTx.objectStore('transactions');
+      const txData = await new Promise<Transaction[]>((resolve, reject) => {
+        const request = txStore.getAll();
+        request.onsuccess = () => resolve(request.result || []);
+        request.onerror = () => reject(request.error);
+      });
+      
+      setCaps(capsData);
+      setTransactions(txData);
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError('Failed to load budget data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-  // Async file writer
-  const writeFile = useCallback(
-    async (handle: FileSystemFileHandle | null, content: any) => {
-      if (!handle) return;
-      try {
-        const writable = await handle.createWritable();
-        await writable.write(JSON.stringify(content, null, 2));
-        await writable.close();
-      } catch (error) {
-        console.error('File write error:', error);
-      }
-    },
-    []
-  );
+  const saveCaps = useCallback(async (newCaps: Caps) => {
+    try {
+      const db = await openDB();
+      const tx = db.transaction('caps', 'readwrite');
+      const store = tx.objectStore('caps');
+      store.put(newCaps, 'caps');
+    } catch (err) {
+      console.error('Failed to save caps:', err);
+      setError('Failed to save budget caps.');
+    }
+  }, []);
 
-  // Write to file when data changes
+  const saveTransaction = useCallback(async (tx: Transaction) => {
+    try {
+      const db = await openDB();
+      const transaction = db.transaction('transactions', 'readwrite');
+      const store = transaction.objectStore('transactions');
+      store.add(tx);
+    } catch (err) {
+      console.error('Failed to save transaction:', err);
+      setError('Failed to save transaction.');
+    }
+  }, []);
+
   useEffect(() => {
-    writeFile(capsFile.handle, caps);
-  }, [caps, capsFile.handle, writeFile]);
+    loadData();
+  }, [loadData]);
 
-  useEffect(() => {
-    writeFile(txFile.handle, transactions);
-  }, [transactions, txFile.handle, writeFile]);
+  const addTransaction = useCallback(async (tx: Transaction) => {
+    // Update local state immediately for UI responsiveness
+    setTransactions(prev => [...prev, tx]);
+    // Save to DB
+    await saveTransaction(tx);
+  }, [saveTransaction]);
+
+  const updateCaps = useCallback(async (newCaps: Caps) => {
+    // Update local state
+    setCaps(newCaps);
+    // Save to DB
+    await saveCaps(newCaps);
+  }, [saveCaps]);
+
+  const updateCategory = useCallback(async (
+    oldCategory: string,
+    newCategory: string,
+    newCap: number
+  ) => {
+    // Update caps
+    const newCaps = { ...caps };
+    delete newCaps[oldCategory];
+    newCaps[newCategory] = newCap;
+    
+    // Update transactions
+    const updatedTransactions = transactions.map(tx => 
+      tx.category === oldCategory ? { ...tx, category: newCategory } : tx
+    );
+    
+    // Update state
+    setCaps(newCaps);
+    setTransactions(updatedTransactions);
+    
+    // Save to DB
+    await saveCaps(newCaps);
+    
+    // Save updated transactions (in a real app, you'd batch update)
+    const db = await openDB();
+    const tx = db.transaction('transactions', 'readwrite');
+    const store = tx.objectStore('transactions');
+    await store.clear();
+    updatedTransactions.forEach(tx => store.add(tx));
+  }, [caps, transactions, saveCaps]);
+
+  const deleteCategory = useCallback(async (category: string) => {
+    const newCaps = { ...caps };
+    delete newCaps[category];
+    setCaps(newCaps);
+    await saveCaps(newCaps);
+  }, [caps, saveCaps]);
 
   // Compute remaining
   const remaining: Caps = {};
@@ -57,30 +158,16 @@ export function useBudget() {
     remaining[cat] = capVal - spent;
   });
 
-  // Add transaction (triggers file write via useEffect)
-  const addTransaction = useCallback(
-    (tx: Transaction) => {
-      const newTx = [...transactions, tx];
-      setTransactions(newTx);
-    },
-    [transactions, setTransactions]
-  );
-
-  // Update caps (triggers file write via useEffect)
-  const updateCaps = useCallback(
-    (newCaps: Caps) => {
-      setCaps(newCaps);
-    },
-    [setCaps]
-  );
-
   return {
     caps,
     remaining,
     transactions,
+    loading,
+    error,
     addTransaction,
     updateCaps,
-    pickCapsFile: capsFile.pick,
-    pickTxFile: txFile.pick,
+    updateCategory,
+    deleteCategory,
+    reloadData: loadData
   };
 }

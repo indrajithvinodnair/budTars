@@ -2,11 +2,18 @@ import { useState, useEffect } from 'react';
 
 declare global {
   interface Window {
-    showSaveFilePicker?: (
-      opts: SaveFilePickerOptions
-    ) => Promise<FileSystemFileHandle>;
+    showOpenFilePicker?: (options?: OpenFilePickerOptions) => Promise<FileSystemFileHandle[]>;
+    showSaveFilePicker?: (options?: SaveFilePickerOptions) => Promise<FileSystemFileHandle>;
   }
 }
+
+type OpenFilePickerOptions = {
+  types?: Array<{
+    description?: string;
+    accept: Record<string, string[]>;
+  }>;
+  multiple?: boolean;
+};
 
 type SaveFilePickerOptions = {
   suggestedName?: string;
@@ -66,10 +73,9 @@ export function useFileHandle(key: string) {
   // Restore handle from IndexedDB on mount
   useEffect(() => {
     (async () => {
-      if (window.showSaveFilePicker) {
+      if (window.showOpenFilePicker) {
         const savedHandle = await idb.get(key);
         if (savedHandle) {
-          // Verify permissions
           if (await verifyPermission(savedHandle, true)) {
             setHandle(savedHandle);
           }
@@ -84,7 +90,6 @@ export function useFileHandle(key: string) {
   ) => {
     const options = { mode: readWrite ? 'readwrite' : 'read' } as const;
     
-    // Check if methods exist before calling
     if (typeof (handle as any).queryPermission === 'function') {
       if ((await (handle as any).queryPermission(options)) === 'granted') return true;
     }
@@ -93,11 +98,29 @@ export function useFileHandle(key: string) {
       return (await (handle as any).requestPermission(options)) === 'granted';
     }
     
-    // Fallback: Assume permission is granted if methods don't exist
     return true;
   };
 
-  const pick = async (suggestedName: string) => {
+  const openFile = async () => {
+    if (!window.showOpenFilePicker) {
+      throw new Error('File System Access API not supported');
+    }
+    const [handle] = await window.showOpenFilePicker({
+      types: [{
+        description: 'JSON Files',
+        accept: { 'application/json': ['.json'] },
+      }],
+      multiple: false,
+    });
+    
+    if (await verifyPermission(handle, true)) {
+      setHandle(handle);
+      await idb.set(key, handle);
+    }
+    return handle;
+  };
+
+  const createFile = async (suggestedName: string) => {
     if (!window.showSaveFilePicker) {
       throw new Error('File System Access API not supported');
     }
@@ -109,14 +132,12 @@ export function useFileHandle(key: string) {
       }],
     });
     
-    // Verify and store handle
     if (await verifyPermission(handle, true)) {
       setHandle(handle);
       await idb.set(key, handle);
-      return handle;
     }
-    throw new Error('Permission denied');
+    return handle;
   };
 
-  return { handle, pick };
+  return { handle, openFile, createFile };
 }
