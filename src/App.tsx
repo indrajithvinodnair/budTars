@@ -3,6 +3,7 @@ import type { Transaction } from './hooks/useBudget';
 import { useBudget } from './hooks/useBudget';
 import { Link } from 'react-router-dom';
 import './App.css';
+import { DarkModeToggle } from './components/DarkmodeToggle';
 
 export function App() {
   const {
@@ -77,16 +78,17 @@ export function App() {
 
   return (
     <div className="p-4 max-w-md mx-auto">
-      {/* Header with Raw Data & Settings links */}
+      {/* Improved header layout */}
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Budget Tracker</h1>
-        <div className="flex gap-4">
-          <Link to="/raw-data" className="text-green-600 hover:text-green-800">
-            📜 Raw JSON
+        <div className="flex gap-3 items-center">
+          <Link to="/raw-data" className="text-green-600 dark:text-green-400 hover:text-green-800 dark:hover:text-green-300">
+            📜
           </Link>
-          <Link to="/settings" className="text-blue-600 hover:text-blue-800">
-            ⚙️ Settings
+          <Link to="/settings" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+            ⚙️
           </Link>
+          <DarkModeToggle />
         </div>
       </header>
 

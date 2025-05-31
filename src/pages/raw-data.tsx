@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useBudget } from '../hooks/useBudget';
 import { Link } from 'react-router-dom';
+import { DarkModeToggle } from '../components/DarkmodeToggle';
 
 export function RawData() {
   const { caps, transactions, loading, error } = useBudget();
@@ -28,8 +29,8 @@ export function RawData() {
         <div className="p-3 bg-red-100 text-red-700 rounded mb-4">
           {error}
         </div>
-        <Link 
-          to="/settings" 
+        <Link
+          to="/settings"
           className="block w-full py-3 bg-blue-600 text-white text-center rounded"
         >
           Go to Settings
@@ -38,21 +39,24 @@ export function RawData() {
     );
   }
 
-  return (
+ return (
     <div className="p-4 max-w-4xl mx-auto">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Raw Budget Data</h1>
-        <Link to="/settings" className="text-blue-600 hover:text-blue-800">
-          ⚙️ Back to Settings
-        </Link>
+        <div className="flex items-center gap-3">
+          <DarkModeToggle />
+          <Link to="/" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+            ↩️ Home
+          </Link>
+        </div>
       </div>
 
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-3">Budget Caps</h2>
         <div className="bg-gray-100 rounded-lg overflow-hidden">
-          <pre 
+          <pre
             className="p-4 overflow-x-auto text-sm"
-            style={{ 
+            style={{
               maxHeight: '40vh',
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',
@@ -67,9 +71,9 @@ export function RawData() {
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-3">Transactions</h2>
         <div className="bg-gray-100 rounded-lg overflow-hidden">
-          <pre 
+          <pre
             className="p-4 overflow-x-auto text-sm"
-            style={{ 
+            style={{
               maxHeight: '40vh',
               overflowY: 'auto',
               whiteSpace: 'pre-wrap',

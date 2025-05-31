@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useBudget } from '../hooks/useBudget';
 import { CategoryEditor } from '../components/categoryEditor';
 import { Link } from 'react-router-dom';
+import { DarkModeToggle } from '../components/DarkmodeToggle';
 
 export function Settings() {
   const { 
@@ -24,9 +25,17 @@ export function Settings() {
     setNewCap(0);
   };
 
-  return (
+return (
     <div className="p-4 max-w-md mx-auto space-y-6">
-      <h1 className="text-2xl font-bold">Budget Settings</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-2xl font-bold">Budget Settings</h1>
+        <div className="flex items-center gap-3">
+          <DarkModeToggle />
+          <Link to="/" className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
+            ↩️ Home
+          </Link>
+        </div>
+      </div>
 
       {error && (
         <div className="p-2 bg-red-100 text-red-700 rounded">

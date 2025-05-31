@@ -3,16 +3,19 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { App } from './App';
 import { Settings } from './pages/settings';
 import { RawData } from './pages/raw-data';
+import { DarkModeProvider } from './contexts/DarkmodeContext';
 import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
-  <BrowserRouter>
-    <Routes>
-      <Route path="/" element={<App />} />
-      <Route path="/settings" element={<Settings />} />
-      <Route path="/raw-data" element={<RawData />} />
-    </Routes>
-  </BrowserRouter>
+  <DarkModeProvider>
+    <BrowserRouter>
+      <Routes>
+        <Route path="/" element={<App />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/raw-data" element={<RawData />} />
+      </Routes>
+    </BrowserRouter>
+  </DarkModeProvider>
 );
 
 if ('serviceWorker' in navigator) {
