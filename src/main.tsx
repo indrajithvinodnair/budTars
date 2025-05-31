@@ -20,12 +20,15 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/service-worker.js')
+    navigator.serviceWorker.register('/sw.js')  // Updated path
       .then(registration => {
-        console.log('ServiceWorker registered: ', registration);
+        console.log('SW registered:', registration);
+        
+        // Check for updates every hour
+        setInterval(() => registration.update(), 60 * 60 * 1000);
       })
       .catch(error => {
-        console.log('ServiceWorker registration failed: ', error);
+        console.log('SW registration failed:', error);
       });
   });
 }

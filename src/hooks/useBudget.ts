@@ -195,6 +195,26 @@ export function useBudget() {
       .reduce((sum, tx) => sum + tx.amount, 0);
     remaining[cat] = capVal - spent;
   });
+const updateTransaction = useCallback(async (tx: Transaction) => {
+    if (tx.id === undefined) {
+      throw new Error('Cannot update transaction without ID');
+    }
+    
+    try {
+      const db = await openDB();
+      const transaction = db.transaction('transactions', 'readwrite');
+      const store = transaction.objectStore('transactions');
+      await store.put(tx); // Update the transaction
+      
+      // Update state
+      setTransactions(prev => prev.map(t => t.id === tx.id ? tx : t));
+      return true;
+    } catch (err) {
+      console.error('Failed to update transaction:', err);
+      setError('Failed to update transaction.');
+      return false;
+    }
+  }, []);
 
   return {
     caps,
@@ -207,6 +227,7 @@ export function useBudget() {
     updateCategory,
     deleteCategory,
     reloadData: loadData,
+    updateTransaction,
     clearAllData
   };
 }

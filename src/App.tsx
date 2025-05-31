@@ -11,6 +11,7 @@ export function App() {
     remaining,
     transactions,
     addTransaction,
+    updateTransaction,
     loading,
     error,
   } = useBudget();
@@ -20,6 +21,7 @@ export function App() {
   const [amount, setAmount] = useState<number>(0);
   const [note, setNote] = useState<string>('');
   const WARNING_THRESHOLD = 0.1; // 10% of budget remaining
+  const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   // Set default category once caps are loaded
   useEffect(() => {
@@ -40,6 +42,37 @@ export function App() {
     addTransaction(newTx);
 
     // Reset form
+    setAmount(0);
+    setNote('');
+  };
+
+  const handleEdit = (tx: Transaction) => {
+    setEditingTx(tx);
+    setCategory(tx.category);
+    setAmount(tx.amount);
+    setNote(tx.note || '');
+  };
+
+  const handleUpdate = async () => {
+    if (!editingTx || !category || amount <= 0) return;
+    
+    const updatedTx: Transaction = {
+      ...editingTx,
+      category,
+      amount,
+      note: note.trim() || undefined,
+    };
+    
+    await updateTransaction(updatedTx);
+    
+    // Reset form and editing state
+    setEditingTx(null);
+    setAmount(0);
+    setNote('');
+  };
+
+  const cancelEdit = () => {
+    setEditingTx(null);
     setAmount(0);
     setNote('');
   };
@@ -103,7 +136,6 @@ export function App() {
 
       <div className="flex-grow overflow-y-auto pb-4">
         {/* Remaining Budgets */}
-      // src/App.tsx
         <section className="mb-6">
           <h2 className="font-semibold mb-2">Remaining Budgets</h2>
           <ul className="space-y-1">
@@ -111,6 +143,7 @@ export function App() {
               const capVal = caps[cat];
               const isOverspent = rem < 0;
               const isClose = !isOverspent && (rem < WARNING_THRESHOLD * capVal);
+              const overspentAmount = Math.abs(rem);
 
               let bgClass = 'bg-gray-100 dark:bg-gray-800';
               let amountClass = 'font-semibold';
@@ -127,13 +160,20 @@ export function App() {
                 <li key={cat} className={`flex justify-between p-2 rounded ${bgClass}`}>
                   <span className="font-medium">{cat}</span>
                   <div className="flex flex-col items-end">
-                    <span className="text-xs text-gray-500 dark:text-gray-400">
-                      Cap: ₹{capVal.toFixed(2)}
-                    </span>
+                    {isOverspent && (
+                      <span className="text-xs text-gray-500 dark:text-gray-400">
+                        Cap: ₹{capVal.toFixed(2)}
+                      </span>
+                    )}
                     <span className={amountClass}>
-                      {isOverspent
-                        ? `Overspent: ₹${Math.abs(rem).toFixed(2)}`
-                        : `Remaining: ₹${rem.toFixed(2)}`}
+                      {isOverspent ? (
+                        <span className="flex items-center">
+                          <span className="text-lg mr-1">▼</span>
+                          ₹{overspentAmount.toFixed(2)}
+                        </span>
+                      ) : (
+                        `₹${rem.toFixed(2)}`
+                      )}
                     </span>
                   </div>
                 </li>
@@ -143,10 +183,15 @@ export function App() {
         </section>
 
         {/* Log Expense Form */}
-        <section className="mb-6 space-y-3">
-          <div className="grid grid-cols-1 gap-2">
+       <section className="mb-6 space-y-3">
+          <h2 className="font-semibold">
+            {editingTx ? 'Edit Transaction' : 'Log New Expense'}
+          </h2>
+          
+          <div className="grid grid-cols-1 gap-2 mx-1"> {/* Added mx-1 for horizontal margin */}
             <select
-              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800
+                         focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
             >
@@ -160,7 +205,8 @@ export function App() {
             <input
               type="number"
               placeholder="Amount"
-              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800
+                         focus:outline-none focus:ring-2 focus:ring-blue-500"
               step="0.01"
               value={amount > 0 ? amount : ''}
               onChange={(e) => setAmount(Number(e.target.value))}
@@ -169,18 +215,38 @@ export function App() {
             <input
               type="text"
               placeholder="Note (optional)"
-              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800
+                         focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={note}
               onChange={(e) => setNote(e.target.value)}
             />
           </div>
 
-          <button
-            className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
-            onClick={handleLog}
-          >
-            Log Expense
-          </button>
+          <div className="flex gap-3">
+            {editingTx ? (
+              <>
+                <button
+                  className="flex-1 bg-gray-500 text-white p-3 rounded-lg hover:bg-gray-600"
+                  onClick={cancelEdit}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="flex-1 bg-green-500 text-white p-3 rounded-lg hover:bg-green-600"
+                  onClick={handleUpdate}
+                >
+                  Update
+                </button>
+              </>
+            ) : (
+              <button
+                className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+                onClick={handleLog}
+              >
+                Log Expense
+              </button>
+            )}
+          </div>
         </section>
 
         {/* All Transactions */}
@@ -231,8 +297,17 @@ export function App() {
                           )}
                         </div>
                       </div>
-                      <div className="font-bold text-lg text-red-500 dark:text-red-400 pl-2">
-                        -₹{tx.amount.toFixed(2)}
+                      <div className="flex items-center gap-2">
+                        <div className="font-bold text-lg text-red-500 dark:text-red-400 pl-2">
+                          -₹{tx.amount.toFixed(2)}
+                        </div>
+                        <button
+                          onClick={() => handleEdit(tx)}
+                          className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
+                          aria-label="Edit transaction"
+                        >
+                          ✏️
+                        </button>
                       </div>
                     </div>
 

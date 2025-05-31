@@ -29,5 +29,14 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,json}']
       }
     })
-  ]
+  ],
+  server: {
+    host: true, // Listen on all network interfaces
+    port: 5173,
+    allowedHosts: [
+      'localhost',
+      '127.0.0.1',
+      '.ngrok-free.app' // Allow all ngrok domains
+    ]
+  }
 })
