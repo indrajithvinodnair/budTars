@@ -4,9 +4,10 @@ import { Link } from 'react-router-dom';
 import { DarkModeToggle } from '../components/DarkmodeToggle';
 
 export function RawData() {
-  const { caps, transactions, loading, error } = useBudget();
+  const { caps, transactions, loading, error, clearAllData } = useBudget();
   const [capsJson, setCapsJson] = useState('');
   const [txJson, setTxJson] = useState('');
+  const [showClearModal, setShowClearModal] = useState(false);
 
   useEffect(() => {
     if (!loading) {
@@ -14,6 +15,13 @@ export function RawData() {
       setTxJson(JSON.stringify(transactions, null, 2));
     }
   }, [caps, transactions, loading]);
+
+  const handleClearAllData = async () => {
+    const success = await clearAllData();
+    if (success) {
+      setShowClearModal(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -51,11 +59,23 @@ export function RawData() {
         </div>
       </div>
 
+      {/* Add Clear Data Button */}
+      <div className="mb-6">
+        <button
+          onClick={() => setShowClearModal(true)}
+          className="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+          disabled={transactions.length === 0 && Object.keys(caps).length === 0}
+        >
+          Clear All Data
+        </button>
+      </div>
+
+      {/* Budget Caps Section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-3">Budget Caps</h2>
-        <div className="bg-gray-100 rounded-lg overflow-hidden">
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
           <pre
-            className="p-4 overflow-x-auto text-sm"
+            className="p-4 overflow-x-auto text-sm text-gray-800 dark:text-gray-200"
             style={{
               maxHeight: '40vh',
               overflowY: 'auto',
@@ -68,11 +88,12 @@ export function RawData() {
         </div>
       </div>
 
+      {/* Transactions Section */}
       <div className="mb-8">
         <h2 className="text-xl font-semibold mb-3">Transactions</h2>
-        <div className="bg-gray-100 rounded-lg overflow-hidden">
+        <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
           <pre
-            className="p-4 overflow-x-auto text-sm"
+            className="p-4 overflow-x-auto text-sm text-gray-800 dark:text-gray-200"
             style={{
               maxHeight: '40vh',
               overflowY: 'auto',
@@ -85,7 +106,8 @@ export function RawData() {
         </div>
       </div>
 
-      <div className="mt-8 p-4 bg-yellow-50 rounded-lg">
+      {/* Backup Instructions */}
+      <div className="mt-8 p-4 bg-yellow-50 dark:bg-yellow-900/30 rounded-lg">
         <h3 className="font-semibold mb-2">How to backup your data</h3>
         <ol className="list-decimal pl-5 space-y-1 text-sm">
           <li>Select all text in a section (tap and hold, then Select All)</li>
@@ -95,6 +117,30 @@ export function RawData() {
           <li>Save the files as "budget_caps.json" and "transactions.json"</li>
         </ol>
       </div>
+
+      {/* Clear Data Confirmation Modal */}
+      {showClearModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 max-w-sm w-full">
+            <h3 className="font-bold text-lg mb-4">Are you sure?</h3>
+            <p className="mb-6">This will permanently delete all your budget categories and transactions. This action cannot be undone.</p>
+            <div className="flex justify-end gap-3">
+              <button
+                onClick={() => setShowClearModal(false)}
+                className="px-4 py-2 border border-gray-300 rounded hover:bg-gray-100 dark:hover:bg-gray-700"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleClearAllData}
+                className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+              >
+                Clear All Data
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

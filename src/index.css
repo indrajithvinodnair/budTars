@@ -35,3 +35,10 @@ body {
 .dark button {
   @apply bg-gray-800 border-gray-700 text-white;
 }
+
+.dark .bg-orange-100 {
+  @apply bg-orange-900/30;
+}
+.dark .bg-red-100 {
+  @apply bg-red-900/30;
+}

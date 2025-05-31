@@ -19,6 +19,7 @@ export function App() {
   const [category, setCategory] = useState<string>('');
   const [amount, setAmount] = useState<number>(0);
   const [note, setNote] = useState<string>('');
+  const WARNING_THRESHOLD = 0.1; // 10% of budget remaining
 
   // Set default category once caps are loaded
   useEffect(() => {
@@ -43,6 +44,14 @@ export function App() {
     setNote('');
   };
 
+  // Sort transactions by ID descending (newest first)
+  // Using optional chaining and fallback values
+  const sortedTransactions = [...transactions].sort((a, b) => {
+    const idA = a.id || 0;
+    const idB = b.id || 0;
+    return idB - idA;
+  });
+
   if (loading) {
     return (
       <div className="p-4 max-w-md mx-auto text-center">
@@ -54,7 +63,7 @@ export function App() {
   if (error) {
     return (
       <div className="p-4 max-w-md mx-auto">
-        <div className="p-3 bg-red-100 text-red-700 rounded mb-4">
+        <div className="p-3 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded mb-4">
           {error}
         </div>
         <Link to="/settings" className="block w-full py-3 bg-blue-600 text-white text-center rounded">
@@ -77,8 +86,8 @@ export function App() {
   }
 
   return (
-    <div className="p-4 max-w-md mx-auto">
-      {/* Improved header layout */}
+    <div className="p-4 max-w-md mx-auto flex flex-col min-h-screen">
+      {/* Header */}
       <header className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">Budget Tracker</h1>
         <div className="flex gap-3 items-center">
@@ -92,78 +101,153 @@ export function App() {
         </div>
       </header>
 
-      {/* Remaining Budgets */}
-      <section className="mb-6">
-        <h2 className="font-semibold mb-2">Remaining Budgets</h2>
-        <ul className="space-y-1">
-          {Object.entries(remaining).map(([cat, rem]) => (
-            <li key={cat} className="flex justify-between">
-              <span>{cat}</span>
-              <span>₹{rem}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+      <div className="flex-grow overflow-y-auto pb-4">
+        {/* Remaining Budgets */}
+      // src/App.tsx
+        <section className="mb-6">
+          <h2 className="font-semibold mb-2">Remaining Budgets</h2>
+          <ul className="space-y-1">
+            {Object.entries(remaining).map(([cat, rem]) => {
+              const capVal = caps[cat];
+              const isOverspent = rem < 0;
+              const isClose = !isOverspent && (rem < WARNING_THRESHOLD * capVal);
 
-      {/* Log Expense Form */}
-      <section className="mb-6 space-y-2">
-        <select
-          className="w-full p-2 border rounded"
-          value={category}
-          onChange={(e) => setCategory(e.target.value)}
-        >
-          {Object.keys(caps).map((cat) => (
-            <option key={cat} value={cat}>
-              {cat}
-            </option>
-          ))}
-        </select>
+              let bgClass = 'bg-gray-100 dark:bg-gray-800';
+              let amountClass = 'font-semibold';
 
-        <input
-          type="number"
-          placeholder="Amount"
-          className="w-full p-2 border rounded"
-          value={amount > 0 ? amount : ''}
-          onChange={(e) => setAmount(Number(e.target.value))}
-        />
+              if (isOverspent) {
+                bgClass = 'bg-red-100 dark:bg-red-900/30';
+                amountClass += ' text-red-600 dark:text-red-400';
+              } else if (isClose) {
+                bgClass = 'bg-orange-100 dark:bg-orange-900/30';
+                amountClass += ' text-orange-600 dark:text-orange-400';
+              }
 
-        <input
-          type="text"
-          placeholder="Note (optional)"
-          className="w-full p-2 border rounded"
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-
-        <button
-          className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600"
-          onClick={handleLog}
-        >
-          Log Expense
-        </button>
-      </section>
-
-      {/* Recent Transactions */}
-      <section>
-        <h2 className="font-semibold mb-2">Recent Transactions</h2>
-        {transactions.length === 0 ? (
-          <p className="text-sm text-gray-600">No transactions yet.</p>
-        ) : (
-          <ul className="space-y-1 text-sm">
-            {transactions
-              .slice(-5)
-              .reverse()
-              .map((tx, idx) => (
-                <li key={idx} className="flex justify-between">
-                  <span>
-                    {tx.date} — {tx.category}: ₹{tx.amount}
-                  </span>
-                  {tx.note && <span className="text-gray-500">({tx.note})</span>}
+              return (
+                <li key={cat} className={`flex justify-between p-2 rounded ${bgClass}`}>
+                  <span className="font-medium">{cat}</span>
+                  <div className="flex flex-col items-end">
+                    <span className="text-xs text-gray-500 dark:text-gray-400">
+                      Cap: ₹{capVal.toFixed(2)}
+                    </span>
+                    <span className={amountClass}>
+                      {isOverspent
+                        ? `Overspent: ₹${Math.abs(rem).toFixed(2)}`
+                        : `Remaining: ₹${rem.toFixed(2)}`}
+                    </span>
+                  </div>
                 </li>
-              ))}
+              );
+            })}
           </ul>
-        )}
-      </section>
+        </section>
+
+        {/* Log Expense Form */}
+        <section className="mb-6 space-y-3">
+          <div className="grid grid-cols-1 gap-2">
+            <select
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              {Object.keys(caps).map((cat) => (
+                <option key={cat} value={cat}>
+                  {cat}
+                </option>
+              ))}
+            </select>
+
+            <input
+              type="number"
+              placeholder="Amount"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
+              step="0.01"
+              value={amount > 0 ? amount : ''}
+              onChange={(e) => setAmount(Number(e.target.value))}
+            />
+
+            <input
+              type="text"
+              placeholder="Note (optional)"
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+            />
+          </div>
+
+          <button
+            className="w-full bg-blue-500 text-white p-3 rounded-lg hover:bg-blue-600 dark:bg-blue-600 dark:hover:bg-blue-700"
+            onClick={handleLog}
+          >
+            Log Expense
+          </button>
+        </section>
+
+        {/* All Transactions */}
+        <section>
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="font-bold text-xl">Transaction History</h2>
+            <span className="text-sm text-gray-500 dark:text-gray-400">
+              {transactions.length} total
+            </span>
+          </div>
+
+          {transactions.length === 0 ? (
+            <div className="text-center py-8">
+              <div className="text-5xl mb-3">📊</div>
+              <p className="text-gray-600 dark:text-gray-300">
+                No transactions yet. Log your first expense above!
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {sortedTransactions.map((tx, index) => (
+                <div
+                  key={tx.id || `tx-${index}`}
+                  className="
+            relative flex items-start gap-4
+            p-4
+            bg-white dark:bg-gray-800
+            border border-gray-100 dark:border-gray-700
+            rounded-xl
+            shadow-sm hover:shadow-md
+            transition-all duration-200 ease-in-out
+            overflow-hidden
+          "
+                >
+                  {/* Accent bar */}
+                  <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-400 to-purple-500" />
+
+                  <div className="ml-3 flex-1 min-w-0">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <h3 className="font-semibold text-lg truncate">{tx.category}</h3>
+                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
+                          <span className="bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded">
+                            {tx.date}
+                          </span>
+                          {tx.note && (
+                            <span className="ml-2 truncate italic">"{tx.note}"</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="font-bold text-lg text-red-500 dark:text-red-400 pl-2">
+                        -₹{tx.amount.toFixed(2)}
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </section>
+      </div>
+
+      {/* Footer */}
+      <footer className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-500 dark:text-gray-400">
+        Budget Tracker • {new Date().getFullYear()}
+      </footer>
     </div>
   );
 }

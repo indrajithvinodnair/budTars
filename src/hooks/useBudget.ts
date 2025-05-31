@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 
 export interface Transaction {
+  id?: number; 
   category: string;
   amount: number;
   note?: string;
@@ -82,27 +83,64 @@ export function useBudget() {
     }
   }, []);
 
-  const saveTransaction = useCallback(async (tx: Transaction) => {
+  const saveTransaction = useCallback(async (tx: Omit<Transaction, 'id'>) => {
     try {
       const db = await openDB();
       const transaction = db.transaction('transactions', 'readwrite');
       const store = transaction.objectStore('transactions');
-      store.add(tx);
+      const id = await new Promise<number>((resolve, reject) => {
+        const request = store.add(tx);
+        request.onsuccess = () => resolve(request.result as number);
+        request.onerror = () => reject(request.error);
+      });
+      return id;
     } catch (err) {
       console.error('Failed to save transaction:', err);
       setError('Failed to save transaction.');
+      throw err;
     }
   }, []);
+
+  const clearAllData = useCallback(async () => {
+    try {
+      // Clear caps
+      const newCaps = {};
+      await saveCaps(newCaps);
+      setCaps(newCaps);
+      
+      // Clear transactions
+      const db = await openDB();
+      const tx = db.transaction('transactions', 'readwrite');
+      const store = tx.objectStore('transactions');
+      await store.clear();
+      setTransactions([]);
+      
+      return true;
+    } catch (err) {
+      console.error('Failed to clear data:', err);
+      setError('Failed to clear data. Please try again.');
+      return false;
+    }
+  }, [saveCaps]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
 
-  const addTransaction = useCallback(async (tx: Transaction) => {
-    // Update local state immediately for UI responsiveness
-    setTransactions(prev => [...prev, tx]);
-    // Save to DB
-    await saveTransaction(tx);
+ const addTransaction = useCallback(async (tx: Omit<Transaction, 'id'>) => {
+    // Create temporary transaction with a negative ID for optimistic UI
+    const tempTx = { ...tx, id: -Date.now() };
+    setTransactions(prev => [...prev, tempTx]);
+    
+    try {
+      // Save to DB and get real ID
+      const id = await saveTransaction(tx);
+      // Replace temporary transaction with real one
+      setTransactions(prev => prev.map(t => t.id === tempTx.id ? { ...tx, id } : t));
+    } catch (err) {
+      // Remove temporary transaction if save failed
+      setTransactions(prev => prev.filter(t => t.id !== tempTx.id));
+    }
   }, [saveTransaction]);
 
   const updateCaps = useCallback(async (newCaps: Caps) => {
@@ -168,6 +206,7 @@ export function useBudget() {
     updateCaps,
     updateCategory,
     deleteCategory,
-    reloadData: loadData
+    reloadData: loadData,
+    clearAllData
   };
 }
