@@ -163,3 +163,27 @@ MIT License
 ## 🧠 Author
 
 TARS (powered by ChatGPT)
+
+
+
+Future Plans 
+1. Option to edit budget cap name from settings screen. Right now its possible, but the budget cap name kind of falls beyond the left boundary of the screen. We need to show a modal to ask for edit.
+2. Implement Delete budget cap confirmation modal 
+    We are already using modal for clear data confirmation in raw-data screen
+    lets create a common modal component and use it in both areas.
+    We should be able to dynamically set the content and action buttons for the modal
+    through component input or by other means.
+
+3.  May be allow users to set budget caps in fixed, variable, Priority / Investments . Even though we dont track investments as is in the app. We still can log those as expenses since they are taken out from the monthly salary.
+Also instead of showing all the budget caps at once in the home screen, maybe we can show budget caps grouped by type. While logging and adding transactions, an additional input needs to be taken which is the expense type.
+When thats entered, the expense caps according to that type will be shown.
+
+
+4. Since the budget caps are constant across the months for most of the time,
+   It will be nice to have a feature where I can enter the json into the raw-data screen and have a special option to generate budget from it. This will make things easier than setting up the same stuff every month
+
+5. VA is variable expenses/ amonts. SI are Savings / Investments
+
+6. While logging expenses, if the Note is length like 'Chicken Masala and other things' , the amount and edit button goes beyond the screen. Also the date part wraps to a new line. We need to handle the aligment of elements in the transaction history part efficiently
+
+7. Add copy button beneath the transaction history json and budget data json in the raw-data screen, upon clicking the data should be copied to clip board. It would be nice if we can show an alert also like data copied to clip board with a check mark. At present copying data by scrolling the field is cumbersome.
