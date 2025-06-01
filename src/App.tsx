@@ -55,16 +55,16 @@ export function App() {
 
   const handleUpdate = async () => {
     if (!editingTx || !category || amount <= 0) return;
-    
+
     const updatedTx: Transaction = {
       ...editingTx,
       category,
       amount,
       note: note.trim() || undefined,
     };
-    
+
     await updateTransaction(updatedTx);
-    
+
     // Reset form and editing state
     setEditingTx(null);
     setAmount(0);
@@ -183,11 +183,11 @@ export function App() {
         </section>
 
         {/* Log Expense Form */}
-       <section className="mb-6 space-y-3">
+        <section className="mb-6 space-y-3">
           <h2 className="font-semibold">
             {editingTx ? 'Edit Transaction' : 'Log New Expense'}
           </h2>
-          
+
           <div className="grid grid-cols-1 gap-2 mx-1"> {/* Added mx-1 for horizontal margin */}
             <select
               className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800
@@ -271,46 +271,47 @@ export function App() {
                 <div
                   key={tx.id || `tx-${index}`}
                   className="
-            relative flex items-start gap-4
-            p-4
-            bg-white dark:bg-gray-800
-            border border-gray-100 dark:border-gray-700
-            rounded-xl
-            shadow-sm hover:shadow-md
-            transition-all duration-200 ease-in-out
-            overflow-hidden
-          "
+    relative flex items-start gap-4
+    p-4
+    bg-white dark:bg-gray-800
+    border border-gray-100 dark:border-gray-700
+    rounded-xl
+    shadow-sm hover:shadow-md
+    transition-all duration-200 ease-in-out
+    overflow-hidden
+  "
                 >
                   {/* Accent bar */}
                   <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-blue-400 to-purple-500" />
 
                   <div className="ml-3 flex-1 min-w-0">
                     <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-semibold text-lg truncate">{tx.category}</h3>
-                        <div className="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
-                          <span className="bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded">
+                      <div className="min-w-0">
+                        <div className="flex justify-between items-baseline">
+                          <h3 className="font-semibold text-lg truncate pr-2">{tx.category}</h3>
+                          <div className="font-bold text-lg text-red-500 dark:text-red-400 shrink-0">
+                            -₹{tx.amount.toFixed(2)}
+                          </div>
+                        </div>
+                        <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
+                          <span className="bg-gray-100 dark:bg-gray-700/50 px-2 py-0.5 rounded whitespace-nowrap">
                             {tx.date}
                           </span>
                           {tx.note && (
-                            <span className="ml-2 truncate italic">"{tx.note}"</span>
+                            <span className="truncate italic min-w-0 flex-1">
+                              "{tx.note}"
+                            </span>
                           )}
                         </div>
                       </div>
-                      <div className="flex items-center gap-2">
-                        <div className="font-bold text-lg text-red-500 dark:text-red-400 pl-2">
-                          -₹{tx.amount.toFixed(2)}
-                        </div>
-                        <button
-                          onClick={() => handleEdit(tx)}
-                          className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400"
-                          aria-label="Edit transaction"
-                        >
-                          ✏️
-                        </button>
-                      </div>
+                      <button
+                        onClick={() => handleEdit(tx)}
+                        className="p-1 text-gray-500 hover:text-blue-600 dark:hover:text-blue-400 shrink-0 ml-2"
+                        aria-label="Edit transaction"
+                      >
+                        ✏️
+                      </button>
                     </div>
-
                   </div>
                 </div>
               ))}
