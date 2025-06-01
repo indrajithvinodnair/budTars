@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { Modal } from './Modal';
 
 type CategoryEditorProps = {
@@ -9,74 +9,84 @@ type CategoryEditorProps = {
 };
 
 export function CategoryEditor({ category, cap, onUpdate, onDelete }: CategoryEditorProps) {
-  const [editMode, setEditMode] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newName, setNewName] = useState(category);
   const [newCap, setNewCap] = useState(cap);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  useEffect(() => {
+    setNewName(category);
+    setNewCap(cap);
+  }, [category, cap]);
 
   const handleSave = () => {
     onUpdate(category, newName, newCap);
-    setEditMode(false);
+    setShowEditModal(false);
   };
-
-  if (editMode) {
-    return (
-      <div className="flex gap-2 mb-2">
-        <input
-          type="text"
-          value={newName}
-          onChange={(e) => setNewName(e.target.value)}
-          className="flex-1 p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-        />
-        <input
-          type="number"
-          value={newCap}
-          onChange={(e) => setNewCap(Number(e.target.value))}
-          className="w-24 p-2 border rounded dark:bg-gray-800 dark:border-gray-700"
-          min="0"
-          step="0.01"
-        />
-        <button 
-          onClick={handleSave}
-          className="px-3 bg-green-500 text-white rounded"
-        >
-          ✓
-        </button>
-        <button 
-          onClick={() => {
-            setEditMode(false);
-            setNewName(category);
-            setNewCap(cap);
-          }}
-          className="px-3 bg-gray-500 text-white rounded"
-        >
-          ✕
-        </button>
-      </div>
-    );
-  }
 
   return (
     <div className="flex justify-between items-center mb-2 p-2 bg-gray-50 dark:bg-gray-700 rounded">
-      <div>
-        <span className="font-medium dark:text-white">{category}</span>
-        <span className="ml-2 dark:text-gray-300">₹{cap.toFixed(2)}</span>
+      <div className="overflow-hidden">
+        <span className="font-medium dark:text-white truncate block">{category}</span>
+        <span className="text-sm dark:text-gray-300">₹{cap.toFixed(2)}</span>
       </div>
       <div className="flex gap-2">
         <button 
-          onClick={() => setEditMode(true)}
-          className="px-3 py-1 bg-blue-500 text-white rounded text-sm"
+          onClick={() => setShowEditModal(true)}
+          className="px-3 py-1 bg-blue-500 text-white rounded text-sm whitespace-nowrap"
         >
           Edit
         </button>
         <button 
           onClick={() => setShowDeleteModal(true)}
-          className="px-3 py-1 bg-red-500 text-white rounded text-sm"
+          className="px-3 py-1 bg-red-500 text-white rounded text-sm whitespace-nowrap"
         >
           Delete
         </button>
       </div>
 
+      {/* Edit Modal */}
+      <Modal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        title="Edit Budget Category"
+        actionButton={{
+          label: 'Save Changes',
+          onClick: handleSave
+        }}
+      >
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-200">
+              Category Name
+            </label>
+            <input
+              type="text"
+              value={newName}
+              onChange={(e) => setNewName(e.target.value)}
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              placeholder="Category name"
+            />
+          </div>
+          
+          <div>
+            <label className="block text-sm font-medium mb-1 dark:text-gray-200">
+              Monthly Budget (₹)
+            </label>
+            <input
+              type="number"
+              value={newCap}
+              onChange={(e) => setNewCap(Number(e.target.value))}
+              className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              min="0"
+              step="0.01"
+              placeholder="Amount"
+            />
+          </div>
+        </div>
+      </Modal>
+
+      {/* Delete Modal */}
       <Modal
         isOpen={showDeleteModal}
         onClose={() => setShowDeleteModal(false)}
