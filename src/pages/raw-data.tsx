@@ -1,4 +1,4 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useBudget } from '../hooks/useBudget';
 import { Link } from 'react-router-dom';
 import { DarkModeToggle } from '../components/DarkmodeToggle';
@@ -9,6 +9,28 @@ export function RawData() {
   const [capsJson, setCapsJson] = useState('');
   const [txJson, setTxJson] = useState('');
   const [showClearModal, setShowClearModal] = useState(false);
+
+  const [toast, setToast] = useState({ message: '', visible: false });
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      if (navigator.clipboard) {
+        await navigator.clipboard.writeText(text);
+      } else {
+        const textarea = document.createElement('textarea');
+        textarea.value = text;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+      }
+      setToast({ message: 'Copied to clipboard!', visible: true });
+      setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2000);
+    } catch (err) {
+      setToast({ message: 'Failed to copy', visible: true });
+      setTimeout(() => setToast((t) => ({ ...t, visible: false })), 2000);
+    }
+  };
 
   useEffect(() => {
     if (!loading) {
@@ -58,6 +80,12 @@ export function RawData() {
             ↩️ Home
           </Link>
         </div>
+        {/* Toast notification */}
+        {toast.visible && (
+          <div className="fixed top-4 left-1/2 transform -translate-x-1/2 bg-green-500 text-white px-4 py-2 rounded-lg shadow-lg z-50">
+            {toast.message}
+          </div>
+        )}
       </div>
 
       <div className="mb-6">
@@ -71,7 +99,16 @@ export function RawData() {
       </div>
 
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-3 dark:text-white">Budget Caps</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-semibold dark:text-white">Budget Caps</h2>
+          <button
+            onClick={() => copyToClipboard(capsJson)}
+            className="px-4 py-3 rounded-lg flex items-center gap-1 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+            aria-label="Copy budget caps data"
+          >
+            📋 Copy
+          </button>
+        </div>
         <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
           <pre
             className="p-4 overflow-x-auto text-sm text-gray-800 dark:text-gray-200"
@@ -88,7 +125,16 @@ export function RawData() {
       </div>
 
       <div className="mb-8">
-        <h2 className="text-xl font-semibold mb-3 dark:text-white">Transactions</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-xl font-semibold dark:text-white">Transactions</h2>
+          <button
+            onClick={() => copyToClipboard(txJson)}
+            className="px-4 py-3 rounded-lg flex items-center gap-1 bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+            aria-label="Copy transaction data"
+          >
+            📋 Copy
+          </button>
+        </div>
         <div className="bg-gray-100 dark:bg-gray-800 rounded-lg overflow-hidden">
           <pre
             className="p-4 overflow-x-auto text-sm text-gray-800 dark:text-gray-200"
