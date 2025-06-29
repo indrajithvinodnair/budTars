@@ -17,7 +17,6 @@ export function Settings() {
     reloadData,
     expenseTypes,
     addExpenseType,
-    removeExpenseType,
     updateExpenseType,
     deleteExpenseType
   } = useBudget();
@@ -46,15 +45,6 @@ export function Settings() {
     setNewExpenseType('');
   };
 
-  const handleRemoveExpenseType = async (type: string) => {
-    // Prevent removing if in use
-    const inUse = Object.values(caps).some(c => c.type === type);
-    if (inUse) {
-      alert('Cannot remove an expense type that is in use by a category.');
-      return;
-    }
-    await removeExpenseType(type);
-  };
   return (
     <div className="p-4 max-w-md mx-auto space-y-6">
       <div className="flex justify-between items-center">
