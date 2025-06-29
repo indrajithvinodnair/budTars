@@ -167,7 +167,7 @@ TARS (powered by ChatGPT)
 
 
 Future Plans 
-1. Option to edit budget cap name from settings screen. Right now its possible, but the budget cap name kind of falls beyond the left boundary of the screen. We need to show a modal to ask for edit.
+1. Option to edit budget cap name from settings screen. Right now its possible, but the budget cap name kind of falls beyond the left boundary of the screen. We need to show a modal to ask for edit. 
 2. Implement Delete budget cap confirmation modal 
     We are already using modal for clear data confirmation in raw-data screen
     lets create a common modal component and use it in both areas.
@@ -175,8 +175,8 @@ Future Plans
     through component input or by other means.
 
 3.  May be allow users to set budget caps in fixed, variable, Priority / Investments . Even though we dont track investments as is in the app. We still can log those as expenses since they are taken out from the monthly salary.
-Also instead of showing all the budget caps at once in the home screen, maybe we can show budget caps grouped by type. While logging and adding transactions, an additional input needs to be taken which is the expense type.
-When thats entered, the expense caps according to that type will be shown.
+Also instead of showing all the budget caps at once in the home screen, maybe we can show budget caps grouped by type. Expand or collapse by group. While adding transactions and editting, an additional input needs to be taken which is the expense type.
+When thats entered, the expense caps according to that type will be shown. We might need some adaptations to the overall budget cap , transaction json structures as well as the budget cap setting area
 
 
 4. Since the budget caps are constant across the months for most of the time,
