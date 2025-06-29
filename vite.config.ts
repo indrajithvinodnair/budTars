@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 
 export default defineConfig({
+  base: '/budTars/',
   plugins: [
     react(),
     VitePWA({
@@ -12,14 +13,15 @@ export default defineConfig({
         short_name: 'Budget',
         description: 'Offline Budget Tracking PWA',
         theme_color: '#ffffff',
+        start_url: '/budTars/', // Update this
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: '/budTars/pwa-192x192.png', // Update paths
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: '/budTars/pwa-512x512.png', // Update paths
             sizes: '512x512',
             type: 'image/png'
           }

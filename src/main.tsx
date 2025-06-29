@@ -1,5 +1,5 @@
 import ReactDOM from 'react-dom/client';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { HashRouter ,Routes, Route } from 'react-router-dom';
 import { App } from './App';
 import { Settings } from './pages/settings';
 import { RawData } from './pages/raw-data';
@@ -8,13 +8,13 @@ import './index.css';
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <DarkModeProvider>
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/" element={<App />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/raw-data" element={<RawData />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   </DarkModeProvider>
 );
 
