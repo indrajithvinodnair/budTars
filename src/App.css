@@ -1,0 +1,60 @@
+/* src/App.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Custom styles for better mobile form display */
+select, input[type="number"], input[type="text"] {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  border-radius: 0.75rem; /* Slightly larger border radius */
+  width: 100%;
+  padding: 0.75rem 1rem; /* Adjusted padding */
+}
+
+/* Remove default focus outline */
+select:focus, input:focus {
+  outline: none;
+}
+
+/* Improve touch targets */
+select, input, button {
+  min-height: 48px; /* Minimum touch target size */
+}
+
+/* Responsive width adjustments */
+@media (max-width: 640px) {
+  .grid-cols-1 > * {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  section {
+    padding-left: 0.5rem;
+    padding-right: 0.5rem;
+  }
+}
+
+/* Specific adjustment for very small screens */
+@media (max-width: 360px) {
+  .grid-cols-1 > * {
+    padding-left: 0;
+    padding-right: 0;
+  }
+  
+  section {
+    padding-left: 0.25rem;
+    padding-right: 0.25rem;
+  }
+  
+  select, input[type="number"], input[type="text"] {
+    padding: 0.65rem 0.8rem; /* Slightly smaller padding */
+  }
+}
+
+/* Ensure form elements don't overflow on small screens */
+select, input {
+  max-width: 100%;
+  box-sizing: border-box;
+}

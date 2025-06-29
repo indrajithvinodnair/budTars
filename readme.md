@@ -1,201 +1,160 @@
-# 🧠 TARS: Personal Finance Tracker Telegram Bot
+# Budget Tracker PWA
 
-**TARS** is your always-online personal finance assistant, built as a Telegram bot with Google Sheets as a backend. It helps you log expenses and investments, monitor budget caps, and track monthly contributions — all via simple chat commands.
+A progressive web application for tracking budgets and expenses with offline capabilities, built with React, TypeScript, and IndexedDB.
 
----
+## Why This Exists
 
-## 📌 Features
+This application solves personal envelope budgeting challenges by:
+- Setting fund envelopes for different needs
+- Tracking expenses within each envelope
+- Exporting raw data at month-end for analysis
 
-* ✅ Log **expenses** and **investment contributions**
-* ✅ Maintain **category-wise monthly budget caps**
-* ✅ Real-time feedback on remaining budget
-* ✅ Sync data to **Google Sheets**
-* ✅ Monthly **reset + data archive** for clear tracking
-* ✅ Easily deploy on Replit, Render, or locally
+## The Process
 
----
+1. **Information** - Capture all spending data
+2. **Reformation** - Organize and categorize expenses
+3. **Transformation** - Gain insights to improve financial habits
 
-## 🧱 Core Commands
+## Key Features
 
-### `/spend <category> <amount> <note>`
+✓ Simple envelope management  
+✓ Cross-platform accessibility  
+✓ Offline functionality  
+✓ Data export capabilities  
 
-Log a daily expense.
+As a PWA, it delivers a native app experience across all devices while maintaining data in browser cache.
+
+![Budget Tracker Screenshot](public/images/HomeScreen.png)
+
+## Features
+
+- 📊 Create and manage budget categories with caps
+- 💸 Log expenses with notes and dates
+- 🌓 Dark/Light mode toggle
+- 📲 Full PWA support (installable, offline access)
+- 📥 Export/import raw data
+- 🔒 Data persistence using IndexedDB
+- 📱 Responsive design for all devices
+
+## Live Demo
+
+Access the live version at:  
+[https://indrajithvinodnair.github.io/budTars/](https://indrajithvinodnair.github.io/budTars/)
+
+## Technologies Used
+
+- **Frontend**: React 19, TypeScript
+- **Styling**: Tailwind CSS
+- **Build Tool**: Vite
+- **State Management**: React Hooks
+- **Database**: IndexedDB
+- **Routing**: React Router
+- **PWA**: Vite PWA Plugin
+- **Deployment**: GitHub Pages
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js (v18+)
+- npm (v9+)
+
+### Local Development
+
+1. Clone the repository:
+```bash
+git clone https://github.com/indrajithvinodnair/budTars.git
+cd budTars
+```
+
+2. Install dependencies:
+```bash
+npm install
+```
+
+3. Start the development server:
+```bash
+npm run dev
+```
+
+4. Open in your browser:
+```
+http://localhost:5173
+```
+
+### Building for Production
 
 ```bash
-/spend food 300 lunch & milk
-👉 ✅ Logged ₹300 under Food. ₹3700 left.
+npm run build
 ```
 
----
-
-### `/invest <category> <amount> <note>`
-
-Log a monthly investment contribution.
+### Deploying to GitHub Pages
 
 ```bash
-/invest sip 4000 emergency fund
-👉 ✅ Logged ₹4000 under SIP. ₹3000 left.
+npm run deploy
 ```
 
----
-
-### `/status`
-
-Get your current budget progress:
+## Application Structure
 
 ```
-📊 Budget Status (May 2025)
-
-Expenses:
-- Food: ₹300 / ₹4000 (₹3700 left)
-- Gym: ₹0 / ₹5000
-
-Investments:
-- SIP: ₹4000 / ₹7000 (₹3000 left)
+src/
+├── components/         # Reusable components
+├── contexts/           # React context providers
+├── hooks/              # Custom React hooks
+├── pages/              # Application pages
+│   ├── App.tsx         # Main application
+│   ├── Settings.tsx    # Settings page
+│   └── RawData.tsx     # Data export page
+├── index.css           # Global styles
+└── main.tsx            # Entry point
 ```
 
----
+## PWA Features
 
-### `/logs`
+- Offline access with service workers
+- Installable on mobile devices
+- Automatic updates
+- Manifest with app icons
+- Background sync support
 
-See your last 5 transactions:
+## Contributing
 
-```
-1. Food - ₹300 - lunch & milk
-2. SIP - ₹4000 - emergency fund
-```
+Contributions are welcome! Please follow these steps:
 
----
+1. Fork the repository
+2. Create a new branch (`git checkout -b feature/your-feature`)
+3. Commit your changes (`git commit -am 'Add some feature'`)
+4. Push to the branch (`git push origin feature/your-feature`)
+5. Create a new Pull Request
 
-### `/reset_month`
+## License
 
-Manually trigger a **monthly archive**:
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-* Copies all `transactions` to `logs_YYYY_MM`
-* Resets the `transactions` sheet
-* Resets “Spent” values in `budgets`
+## Screenshots
 
----
+| Home Page | Settings
+|-------------------|-------
+| ![Home Page](public/images/HomeScreen.png) | ![Settings Expense Types](public/images/ExpenseTypes.png) 
 
-## 📊 Google Sheet Structure
+| Expense Types Add | Edit
+|-------------------|-------
+ | ![Expense Types add](public/images/ExpenseTypes.png) | ![Expense Types Edit](public/images/ExpenseTypesEdit.png)
 
-### Sheet 1: `transactions`
+ | Budget Categories Add | Edit
+|------------------------|-------
+ | ![Budget Categories add](public/images/budgetCaps.png) | ![Budget Categories Edit](public/images/budgetCapsDelete.png)
 
-| Column   | Description           |
-| -------- | --------------------- |
-| Date     | `YYYY-MM-DD`          |
-| Type     | `Expense` or `Invest` |
-| Category | Budget category name  |
-| Amount   | Transaction amount    |
-| Note     | Optional description  |
+ | Settings Raw Data Export
+|------------------
+ | ![Settings Raw Data](public/images/SettingsRawData.png)
 
----
+## Troubleshooting
 
-### Sheet 2: `budgets`
-
-| Column    | Description            |
-| --------- | ---------------------- |
-| Category  | Matches log categories |
-| Type      | `Expense` or `Invest`  |
-| Cap       | Monthly budget         |
-| Spent     | Auto-calculated        |
-| Remaining | Cap - Spent            |
-
----
-
-## 🔐 Setup Instructions
-
-### 1. Create Google Sheet
-
-* Name: `TARS Finance Sheet`
-* Tabs:
-
-  * `transactions`
-  * `budgets`
-* Share it with your **Google Service Account**
-
-### 2. Get Google Sheets Credentials
-
-* Create a **Service Account** in Google Cloud
-* Enable `Google Sheets API`
-* Download `credentials.json`
-* Share sheet with the service account email
-
-### 3. Install Dependencies
-
-```bash
-pip install -r requirements.txt
-```
-
-#### `requirements.txt`
-
-```txt
-python-telegram-bot==13.15
-gspread
-oauth2client
-python-dotenv
-```
+If you encounter issues:
+- Clear browser cache and service workers
+- Ensure you're using the latest version of Node.js
+- Check console for error messages
+- Verify IndexedDB storage in developer tools
 
 ---
-
-### 4. Set Environment Variables
-
-Create a `.env` file:
-
-```env
-BOT_TOKEN=your_telegram_bot_token
-SHEET_NAME=TARS Finance Sheet
-```
-
----
-
-## 📁 Project Structure
-
-```
-/tars-finance-bot
-
-🔍 tars_bot.py           # Main bot logic
-🔍 credentials.json      # Google API credentials
-🔍 .env                  # Tokens and config
-🔍 requirements.txt
-🔍 README.md             # You're here
-🔍 utils/
-    └︎ sheets.py         # Google Sheet functions
-```
-
----
-
-## 🚀 Deploying the Bot
-
-| Platform   | Notes                                      |
-| ---------- | ------------------------------------------ |
-| **Replit** | Good for always-online bots                |
-| **Local**  | Simple for dev work (`python tars_bot.py`) |
-| **Render** | For production-grade auto-deploy           |
-
----
-
-## 🧠 Future Enhancements
-
-* 📟 CSV export
-* 📊 Graph support (spend over time)
-* 🗓 Weekly/daily spend summaries
-* 📊 Net worth projection (optional)
-* 🔄 Scheduled reset via CRON
-
----
-
-## ✅ Build Roadmap
-
-* [x] Budget + Expense Logging
-* [x] Investment Logging
-* [x] Real-time Status Command
-* [x] Monthly Reset and Archive
-* [x] Deployable and Reusable Codebase
-
----
-
-## 🧑‍💻 Author
-
-**Indrajith Vinod Nair** — a proactive 23-year-old making smart money moves, building a tool to stay ahead of lifestyle inflation.
-
