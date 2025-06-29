@@ -4,6 +4,7 @@ import { CategoryEditor } from '../components/categoryEditor';
 import { Link } from 'react-router-dom';
 import { DarkModeToggle } from '../components/DarkmodeToggle';
 import { type ExpenseType } from '../hooks/useBudget';
+import { ExpenseTypeEditor } from '../components/expenseTypeEditor';
 
 export function Settings() {
   const {
@@ -16,7 +17,9 @@ export function Settings() {
     reloadData,
     expenseTypes,
     addExpenseType,
-    removeExpenseType
+    removeExpenseType,
+    updateExpenseType,
+    deleteExpenseType
   } = useBudget();
   const [newCategory, setNewCategory] = useState('');
   const [newCap, setNewCap] = useState(0);
@@ -84,7 +87,7 @@ export function Settings() {
         </Link>
       </section>
       {/* Expense Types Management */}
-     <section className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+      <section className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
         <h2 className="font-semibold text-lg">Expense Types</h2>
 
         {loading ? (
@@ -92,22 +95,14 @@ export function Settings() {
         ) : expenseTypes.length === 0 ? (
           <p className="text-gray-600 dark:text-gray-300">No expense types yet. Add your first one below.</p>
         ) : (
-          <div className="flex gap-2 flex-wrap">
+          <div className="space-y-3">
             {expenseTypes.map((type) => (
-              <span
+              <ExpenseTypeEditor
                 key={type}
-                className="flex items-center bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-lg px-3 py-1 mr-2 mb-2"
-              >
-                <span className="text-gray-800 dark:text-gray-100">{type}</span>
-                <button
-                  className="ml-2 text-red-500 hover:text-red-700 transition"
-                  onClick={() => handleRemoveExpenseType(type)}
-                  title="Remove"
-                  disabled={Object.values(caps).some((c) => c.type === type)}
-                >
-                  ×
-                </button>
-              </span>
+                type={type}
+                onUpdate={updateExpenseType}
+                onDelete={deleteExpenseType}
+              />
             ))}
           </div>
         )}
@@ -130,7 +125,7 @@ export function Settings() {
         </div>
 
         <p className="text-xs text-gray-500 dark:text-gray-400">
-          You can’t remove types that are in use by a category.
+          You can't delete types that are in use by a category.
         </p>
       </section>
 

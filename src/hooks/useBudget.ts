@@ -295,6 +295,51 @@ export function useBudget() {
     remaining[cat] = capInfo.cap - spent;
   });
 
+  const updateExpenseType = useCallback(async (oldType: string, newType: string) => {
+    if (!newType.trim() || expenseTypes.includes(newType)) return;
+
+    try {
+      // Update expense types
+      const newTypes = expenseTypes.map(t => t === oldType ? newType : t);
+      await saveExpenseTypes(newTypes);
+
+      // Update caps using the new type
+      const newCaps = { ...caps };
+      for (const cat in newCaps) {
+        if (newCaps[cat].type === oldType) {
+          newCaps[cat] = { ...newCaps[cat], type: newType };
+        }
+      }
+      await saveCaps(newCaps);
+
+      // Update transactions
+      const updatedTransactions = transactions.map(tx =>
+        tx.type === oldType ? { ...tx, type: newType } : tx
+      );
+
+      const db = await openDB();
+      const tx = db.transaction('transactions', 'readwrite');
+      const store = tx.objectStore('transactions');
+      updatedTransactions.forEach(tx => store.put(tx));
+
+      setTransactions(updatedTransactions);
+    } catch (err) {
+      console.error('Failed to update expense type:', err);
+      setError('Failed to update expense type.');
+    }
+  }, [expenseTypes, caps, transactions, saveExpenseTypes, saveCaps]);
+
+  const deleteExpenseType = useCallback(async (type: string) => {
+    // Prevent removing if in use
+    const inUse = Object.values(caps).some(c => c.type === type);
+    if (inUse) {
+      throw new Error('Cannot remove an expense type that is in use by a category.');
+    }
+
+    const newTypes = expenseTypes.filter(t => t !== type);
+    await saveExpenseTypes(newTypes);
+  }, [expenseTypes, caps, saveExpenseTypes]);
+
   return {
     caps,
     remaining,
@@ -310,6 +355,8 @@ export function useBudget() {
     deleteCategory,
     reloadData: loadData,
     updateTransaction,
-    clearAllData
+    clearAllData,
+    updateExpenseType,
+    deleteExpenseType
   };
 }

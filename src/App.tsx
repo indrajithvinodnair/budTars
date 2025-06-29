@@ -15,6 +15,7 @@ export function App() {
     updateTransaction,
     loading,
     error,
+    expenseTypes
   } = useBudget();
 
   const [category, setCategory] = useState<string>('');
@@ -24,7 +25,7 @@ export function App() {
   const [editingTx, setEditingTx] = useState<Transaction | null>(null);
 
   const WARNING_THRESHOLD = 0.1;
-  const expenseTypeOptions: ExpenseType[] = ['Fixed', 'Variable', 'Priority/Investments'];
+  const expenseTypeOptions: ExpenseType[] = expenseTypes;
 
   // Get categories filtered by selected expense type
   const filteredCategories = Object.keys(caps).filter(
@@ -86,17 +87,16 @@ export function App() {
   };
 
   // Group remaining by expense type
-  const remainingByType: Record<ExpenseType, Record<string, number>> = {
-    Fixed: {},
-    Variable: {},
-    'Priority/Investments': {},
-  };
+  const remainingByType: Record<string, Record<string, number>> = {};
 
+  // Update the grouping logic
   Object.entries(remaining).forEach(([cat, amount]) => {
     const type = caps[cat]?.type || 'Fixed';
+    if (!remainingByType[type]) {
+      remainingByType[type] = {};
+    }
     remainingByType[type][cat] = amount;
   });
-
   if (loading) {
     return <div className="p-4 max-w-md mx-auto text-center">Loading budget data...</div>;
   }
@@ -146,9 +146,9 @@ export function App() {
         <section className="mb-6">
           <h2 className="font-semibold mb-2">Remaining Budgets</h2>
           {expenseTypeOptions.map(type => {
-            const categories = remainingByType[type];
+            const categories = remainingByType[type] || {};
             if (Object.keys(categories).length === 0) return null;
-            
+
             return (
               <div key={type} className="mb-4">
                 <h3 className="font-medium mb-1 text-gray-700 dark:text-gray-300">{type}</h3>
@@ -215,7 +215,6 @@ export function App() {
                 <option key={type} value={type}>{type}</option>
               ))}
             </select>
-
             <select
               className="w-full p-3 border rounded-lg bg-white dark:bg-gray-800"
               value={category}
