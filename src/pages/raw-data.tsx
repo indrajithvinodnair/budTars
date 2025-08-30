@@ -5,12 +5,20 @@ import { DarkModeToggle } from '../components/DarkmodeToggle';
 import { Modal } from '../components/Modal';
 
 export function RawData() {
-  const { caps, transactions, loading, error, clearAllData } = useBudget();
+  const { caps, transactions, loading, error, clearAllData, clearTransactions } = useBudget();
   const [capsJson, setCapsJson] = useState('');
   const [txJson, setTxJson] = useState('');
   const [showClearModal, setShowClearModal] = useState(false);
+  const [showClearTxModal, setShowClearTxModal] = useState(false);
 
   const [toast, setToast] = useState({ message: '', visible: false });
+
+  const handleClearTransactions = async () => {
+    const success = await clearTransactions();
+    if (success) {
+      setShowClearTxModal(false);
+    }
+  };
 
   const copyToClipboard = async (text: string) => {
     try {
@@ -88,7 +96,14 @@ export function RawData() {
         )}
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 space-y-3">
+        <button
+          onClick={() => setShowClearTxModal(true)}
+          className="w-full py-3 bg-orange-600 text-white rounded-lg hover:bg-orange-700 transition"
+          disabled={transactions.length === 0}
+        >
+          Clear Transaction History Only
+        </button>
         <button
           onClick={() => setShowClearModal(true)}
           className="w-full py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
@@ -173,6 +188,27 @@ export function RawData() {
       >
         <p className="dark:text-white">
           This will permanently delete all your budget categories and transactions.
+        </p>
+        <p className="mt-2 text-red-600 dark:text-red-400">
+          This action cannot be undone.
+        </p>
+      </Modal>
+
+      <Modal
+        isOpen={showClearTxModal}
+        onClose={() => setShowClearTxModal(false)}
+        title="Clear Transaction History?"
+        actionButton={{
+          label: 'Clear Transactions',
+          onClick: handleClearTransactions,
+          variant: 'danger'
+        }}
+      >
+        <p className="dark:text-white">
+          This will permanently delete all your transaction history.
+        </p>
+        <p className="mt-2 dark:text-white">
+          Your budget caps will be preserved.
         </p>
         <p className="mt-2 text-red-600 dark:text-red-400">
           This action cannot be undone.

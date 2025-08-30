@@ -340,6 +340,21 @@ export function useBudget() {
     await saveExpenseTypes(newTypes);
   }, [expenseTypes, caps, saveExpenseTypes]);
 
+  const clearTransactions = useCallback(async () => {
+  try {
+    const db = await openDB();
+    const tx = db.transaction('transactions', 'readwrite');
+    const store = tx.objectStore('transactions');
+    await store.clear();
+    setTransactions([]);
+    return true;
+  } catch (err) {
+    console.error('Failed to clear transactions:', err);
+    setError('Failed to clear transactions. Please try again.');
+    return false;
+  }
+}, []);
+
   return {
     caps,
     remaining,
@@ -357,6 +372,7 @@ export function useBudget() {
     updateTransaction,
     clearAllData,
     updateExpenseType,
-    deleteExpenseType
+    deleteExpenseType,
+    clearTransactions
   };
 }
